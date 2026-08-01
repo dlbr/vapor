@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "lib": ["ES2022"],
+    "types": ["vite/client"]
+  },
+  "include": [
+    "server",
+    "src/App.vue",
+    "src/entry-server.ts",
+    "src/head.ts",
+    "src/router.ts",
+    "src/routes.ts",
+    "src/use-head.ts",
+    "src/use-state.ts",
+    "src/vite-env.d.ts",
+    "src/views/**/*.vue",
+    "worker-configuration.d.ts"
+  ]
+}

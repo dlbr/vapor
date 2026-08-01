@@ -1,0 +1,11 @@
+/*
+ * Register screen only. Inlined into the head when the server renders `/`, and
+ * loaded with the full stylesheet for client-side navigation.
+ *
+ * The `.register-screen` / `.register-panel` hooks were already in the markup
+ * with no rules behind them; these are a starting point, not a finished design.
+ */
+
+.register-panel {
+  border-top: 3px solid #6d311d;
+}

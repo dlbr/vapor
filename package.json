@@ -1,0 +1,31 @@
+{
+  "name": "dlbr-vapor-worker",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.14.0",
+  "scripts": {
+    "dev": "concurrently -k -n worker,server,client \"pnpm run dev:worker\" \"pnpm run dev:server\" \"pnpm run dev:client\"",
+    "dev:worker": "vite build --config vite.worker.config.ts --mode development --watch",
+    "dev:server": "wait-on --timeout 30000 dist/worker/index.mjs && wrangler dev --port 3000 --ip 127.0.0.1",
+    "dev:client": "wait-on --timeout 30000 tcp:127.0.0.1:3000 && vite --host 127.0.0.1 --port 5173",
+    "build": "pnpm run types && pnpm run build:worker && pnpm run build:client",
+    "types": "wrangler types",
+    "build:worker": "vite build --config vite.worker.config.ts",
+    "build:client": "vite build",
+    "preview": "wrangler dev",
+    "deploy": "pnpm run build && wrangler deploy"
+  },
+  "dependencies": {
+    "@vitejs/plugin-vue": "latest",
+    "@vue/runtime-vapor": "3.6.0-rc.2",
+    "vue": "3.6.0-rc.2"
+  },
+  "devDependencies": {
+    "concurrently": "latest",
+    "typescript": "latest",
+    "vite": "latest",
+    "vue-tsc": "latest",
+    "wait-on": "latest",
+    "wrangler": "latest"
+  }
+}

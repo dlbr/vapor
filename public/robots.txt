@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /setup
+Disallow: /api/
+
+# The register at / is the only screen worth indexing. Setup configures
+# hardware and /api/ is data, so neither belongs in a search result.
+#
+# If this deployment is an internal till rather than a public site, replace
+# the rules above with a blanket `Disallow: /`.

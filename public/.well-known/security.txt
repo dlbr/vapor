@@ -1,0 +1,12 @@
+# Security contact for dlbr.app.
+#
+# Follows RFC 9116 (https://www.rfc-editor.org/rfc/rfc9116).
+#
+# `Expires` is a required field and this file is treated as stale once it
+# passes. Renew it before the date below; an expired security.txt is worse
+# than none, because a researcher reads it as an abandoned channel.
+
+Contact: mailto:mail@daliborgogic.com
+Expires: 2027-08-01T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://dlbr.app/.well-known/security.txt

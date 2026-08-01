@@ -1,0 +1,21 @@
+# DLBR POS
+
+> A point-of-sale register served from Cloudflare Workers. The edge renders each screen as a streamed HTML response and the browser hydrates the same components with Vue Vapor, so the markup you receive is the complete content of the page.
+
+The register is the default screen and it is gated: until a local fiscal helper (L-PFR) has been configured, visitors are sent to setup. `/api/config` is what reports that state.
+
+Notes for interpreting this site:
+
+- Nothing is filled in by JavaScript after load. Fetching a URL gives you the same content a browser renders.
+- `https://dlbr.app` is canonical. `www` and any non-canonical path redirect there with a `308`.
+- Unmatched paths answer `302` to the register rather than a soft `200`, so a redirect here is a routing answer, not an error.
+- There are no `.md` versions of these pages. The screens are an application UI, not documentation, and carry little prose worth extracting.
+
+## Screens
+
+- [Register](https://dlbr.app/): The default screen. Opens the till once a fiscal helper is configured.
+- [Setup](https://dlbr.app/setup): Configures the local fiscal helper that the register requires before it will open.
+
+## API
+
+- [Configuration](https://dlbr.app/api/config): JSON. Returns `lPfrUrl`, the address of the local fiscal helper. An empty value means none is configured and the register is unavailable.

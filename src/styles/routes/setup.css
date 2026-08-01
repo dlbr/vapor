@@ -1,0 +1,15 @@
+/*
+ * Setup screen only. Inlined into the head when the server renders `/setup`,
+ * and loaded with the full stylesheet for client-side navigation.
+ *
+ * The `.setup-screen` / `.setup-panel` hooks were already in the markup with no
+ * rules behind them; these are a starting point, not a finished design.
+ */
+
+.setup-panel {
+  border-top: 3px solid #1d4e6d;
+}
+
+.setup-panel .eyebrow {
+  color: #1d4e6d;
+}

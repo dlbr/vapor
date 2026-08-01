@@ -1,0 +1,25 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "vapor",
+  "main": "dist/worker/index.mjs",
+  "compatibility_date": "2026-06-25",
+  // The apex is canonical. `www` is attached too, purely so the Worker can
+  // answer on it and redirect — see CANONICAL_HOST in server/worker.ts.
+  "routes": [
+    { "pattern": "dlbr.app", "custom_domain": true },
+    { "pattern": "www.dlbr.app", "custom_domain": true }
+  ],
+  // Without this the app is also reachable at vapor.<account>.workers.dev,
+  // which is a second origin serving identical content and outside the
+  // redirect above.
+  "workers_dev": false,
+  // Served before the Worker runs: the asset router matches these first and
+  // only falls through to `main` on a miss, so /robots.txt, /llms.txt and
+  // /assets/* never reach the Worker. `dist/client` holds the client build
+  // plus everything copied from `public/`.
+  "assets": {
+    "directory": "dist/client",
+    "binding": "ASSETS"
+  },
+  "minify": true
+}
