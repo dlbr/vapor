@@ -7,6 +7,7 @@ interface UseStateOptions {
 }
 
 type StateRegistry = Map<string, Ref<unknown>>;
+type StopPersistence = () => void;
 
 interface ProvideApp {
   provide<T>(key: InjectionKey<T>, value: T): unknown;
@@ -21,6 +22,8 @@ const registryKey: InjectionKey<StateRegistry> = Symbol('dlbr-state-registry');
  * `useState` still works outside a component (see `main.ts`).
  */
 const clientRegistry: StateRegistry = new Map();
+const persistenceStops = new Map<string, StopPersistence>();
+const STATE_STORAGE_PREFIX = 'dlbr:state:';
 
 export function provideStateRegistry(app: ProvideApp): StateRegistry {
   const registry: StateRegistry = new Map();
@@ -59,15 +62,14 @@ export function useState<T>(key: string, initialState: StateInitializer<T>, opti
   const existingState = stateRegistry.get(key);
   if (existingState) return existingState as Ref<T>;
 
-  const value = typeof initialState === 'function'
-    ? (initialState as () => T)()
-    : initialState;
   const storage = options.persist ? getStorage() : null;
+  const storageKey = `${STATE_STORAGE_PREFIX}${key}`;
   let persistedValue: string | null = null;
-  let stateValue = value;
+  let stateValue!: T;
+  let restored = false;
 
   try {
-    persistedValue = storage?.getItem(`dlbr:state:${key}`) ?? null;
+    persistedValue = storage?.getItem(storageKey) ?? null;
   } catch {
     persistedValue = null;
   }
@@ -75,26 +77,34 @@ export function useState<T>(key: string, initialState: StateInitializer<T>, opti
   if (persistedValue !== null) {
     try {
       stateValue = JSON.parse(persistedValue) as T;
+      restored = true;
     } catch {
       try {
-        storage?.removeItem(`dlbr:state:${key}`);
+        storage?.removeItem(storageKey);
       } catch {
         // Ignore invalid or unavailable persisted state.
       }
     }
   }
 
+  if (!restored) {
+    stateValue = typeof initialState === 'function'
+      ? (initialState as () => T)()
+      : initialState;
+  }
+
   const state = ref(stateValue) as Ref<T>;
   stateRegistry.set(key, state as Ref<unknown>);
 
   if (storage) {
-    watch(state, (nextValue) => {
+    const stop = watch(state, (nextValue) => {
       try {
-        storage.setItem(`dlbr:state:${key}`, JSON.stringify(nextValue));
+        storage.setItem(storageKey, JSON.stringify(nextValue));
       } catch {
         // Storage can reject writes when it is full or blocked by privacy settings.
       }
     }, { deep: true });
+    persistenceStops.set(key, stop);
   }
 
   return state;
@@ -104,18 +114,23 @@ export function clearState(key?: string) {
   const storage = getStorage();
 
   if (key) {
+    persistenceStops.get(key)?.();
+    persistenceStops.delete(key);
     clientRegistry.delete(key);
     try {
-      storage?.removeItem(`dlbr:state:${key}`);
+      storage?.removeItem(`${STATE_STORAGE_PREFIX}${key}`);
     } catch {
       // Storage can be unavailable; the in-memory drop already happened.
     }
     return;
   }
 
+  for (const stop of persistenceStops.values()) stop();
+  persistenceStops.clear();
+
   for (const registryKeyName of clientRegistry.keys()) {
     try {
-      storage?.removeItem(`dlbr:state:${registryKeyName}`);
+      storage?.removeItem(`${STATE_STORAGE_PREFIX}${registryKeyName}`);
     } catch {
       // Ignore storage failures while clearing.
     }

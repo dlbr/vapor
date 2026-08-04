@@ -1,4 +1,11 @@
 import { renderApp } from '../src/entry-server';
+import { Pico } from './pico';
+import type { C, Handler } from './pico-types';
+
+declare const __DEV_SHELL__: boolean;
+
+export { Pico };
+export type { C, Fetch, Handler, PicoType, Route } from './pico-types';
 
 /**
  * The Cloudflare Worker entry.
@@ -41,6 +48,7 @@ function securityHeaders(url: URL) {
   return { ...BASE_SECURITY_HEADERS, 'strict-transport-security': HSTS };
 }
 
+const ENCODER = new TextEncoder();
 const styleHashCache = new Map<string, string>();
 
 /**
@@ -60,7 +68,7 @@ async function styleHash(css: string) {
   const cached = styleHashCache.get(css);
   if (cached) return cached;
 
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(css));
+  const digest = await crypto.subtle.digest('SHA-256', ENCODER.encode(css));
   const hash = `'sha256-${btoa(String.fromCharCode(...new Uint8Array(digest)))}'`;
   styleHashCache.set(css, hash);
   return hash;
@@ -118,6 +126,11 @@ const REDIRECT_CACHE = 'public, max-age=31536000';
 const TRUSTED_TYPES_REPORT_ONLY = "require-trusted-types-for 'script'; trusted-types vue";
 
 const CLIENT_ENTRY = '/assets/entry-client.js';
+const IS_DEV_SHELL = __DEV_SHELL__;
+const CLIENT_SCRIPTS = IS_DEV_SHELL
+  ? '<script type="module" src="http://127.0.0.1:5173/@vite/client"></script><script type="module" src="http://127.0.0.1:5173/src/main.ts"></script>'
+  : `<script type="module" src="${CLIENT_ENTRY}"></script>`;
+const MODULE_PRELOAD = IS_DEV_SHELL ? '' : `<link rel="modulepreload" href="${CLIENT_ENTRY}">`;
 
 /**
  * RFC 9116 puts security.txt under `/.well-known/`, and that file is served by
@@ -127,10 +140,8 @@ const CLIENT_ENTRY = '/assets/entry-client.js';
  * page and a `200`.
  */
 const SECURITY_TXT = '/.well-known/security.txt';
-const LEGACY_SECURITY_TXT = '/security.txt';
 
 /** Everything here is a read. Write endpoints get their own allow-lists. */
-const READ_METHODS = new Set(['GET', 'HEAD']);
 const READ_ONLY_ALLOW = 'GET, HEAD';
 
 /**
@@ -153,6 +164,7 @@ const WWW_HOST = `www.${CANONICAL_HOST}`;
  * a `Location` header cannot become a protocol-relative open redirect.
  */
 function normalizePath(pathname: string) {
+  if (!pathname || (!pathname.includes('//') && !pathname.endsWith('/'))) return pathname || '/';
   const collapsed = pathname.replace(/\/{2,}/g, '/');
   if (collapsed.length <= 1) return collapsed || '/';
   return collapsed.replace(/\/+$/, '') || '/';
@@ -175,7 +187,7 @@ function json(body: unknown, headOnly: boolean, security: Record<string, string>
       'content-security-policy': "default-src 'none'; frame-ancestors 'none'",
       // A HEAD response carries no body, so the length has to be stated rather
       // than inferred. For GET the runtime derives it from the body itself.
-      ...(headOnly ? { 'content-length': String(new TextEncoder().encode(payload).byteLength) } : {}),
+      ...(headOnly ? { 'content-length': String(ENCODER.encode(payload).byteLength) } : {}),
       ...security,
     },
   });
@@ -204,15 +216,14 @@ async function renderDocument(path: string, headOnly: boolean, security: Record<
     return new Response(null, { status: 302, headers: { location: redirect, ...security } });
   }
 
-  const isDev = __DEV_SHELL__;
   const documentHeaders: Record<string, string> = {
     'content-type': 'text/html; charset=utf-8',
     // Dev must never be cached; the shell points at a Vite server that moves.
-    'cache-control': isDev ? 'no-store' : DOCUMENT_CACHE,
+    'cache-control': IS_DEV_SHELL ? 'no-store' : DOCUMENT_CACHE,
     ...security,
     // Dev loads modules cross-origin from Vite and relies on its inline HMR
     // client, neither of which this policy allows. Production only.
-    ...(isDev ? {} : {
+    ...(IS_DEV_SHELL ? {} : {
       'content-security-policy': documentCsp(await styleHash(styles)),
       'content-security-policy-report-only': TRUSTED_TYPES_REPORT_ONLY,
     }),
@@ -222,31 +233,26 @@ async function renderDocument(path: string, headOnly: boolean, security: Record<
     return new Response(null, { status, headers: documentHeaders });
   }
 
-  const clientScripts = isDev
-    ? '<script type="module" src="http://127.0.0.1:5173/@vite/client"></script><script type="module" src="http://127.0.0.1:5173/src/main.ts"></script>'
-    : `<script type="module" src="${CLIENT_ENTRY}"></script>`;
-
   // The script tag sits at the end of the body, so on a streamed response the
   // browser would not discover it until the app had finished rendering.
   // Preloading from the head starts that fetch in the first flush.
-  const preload = isDev ? '' : `<link rel="modulepreload" href="${CLIENT_ENTRY}">`;
-  // Critical CSS: the global layer plus this screen's own rules. Dev serves
-  // styles through Vite's HMR pipeline instead.
+  // Critical CSS: the global layer plus this screen's own rules. Inline it in
+  // dev as well so a hard reload never paints the SSR markup before Vite's
+  // client module has injected its stylesheet.
   //
   // This is the only stylesheet in the document. The full sheet — covering
   // screens this response did not render — is attached by the client after
   // hydration, because a `<link rel="stylesheet">` is render-blocking wherever
   // it sits in the markup, including at the end of the body. Leaving it here
   // put a file this page never needs into the critical request chain.
-  const criticalCss = isDev ? '' : `<style>${styles}</style>`;
+  const criticalCss = `<style>${styles}</style>`;
 
-  const encoder = new TextEncoder();
-  const opening = `<!doctype html><html${htmlAttrs ? ` ${htmlAttrs}` : ''}><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="icon" href="data:,">${head}${preload}${criticalCss}</head><body><div id="app">`;
-  const closing = `</div>${clientScripts}</body></html>`;
+  const opening = `<!doctype html><html${htmlAttrs ? ` ${htmlAttrs}` : ''}><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="icon" href="data:,">${head}${MODULE_PRELOAD}${criticalCss}</head><body><div id="app">`;
+  const closing = `</div>${CLIENT_SCRIPTS}</body></html>`;
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      controller.enqueue(encoder.encode(opening));
+      controller.enqueue(ENCODER.encode(opening));
 
       if (appStream) {
         const reader = appStream.getReader();
@@ -260,13 +266,13 @@ async function renderDocument(path: string, headOnly: boolean, security: Record<
           // The head is already on the wire, so the status line cannot change.
           // Close out a well-formed document and let the client take over.
           console.error('SSR stream failed', error);
-          controller.enqueue(encoder.encode('<!--ssr-error-->'));
+          controller.enqueue(ENCODER.encode('<!--ssr-error-->'));
         } finally {
           reader.releaseLock();
         }
       }
 
-      controller.enqueue(encoder.encode(closing));
+      controller.enqueue(ENCODER.encode(closing));
       controller.close();
     },
   });
@@ -274,17 +280,22 @@ async function renderDocument(path: string, headOnly: boolean, security: Record<
   return new Response(stream, { status, headers: documentHeaders });
 }
 
-export default {
-  async fetch(request: Request) {
-    const url = new URL(request.url);
+// Host and path are canonicalised together, so `www.dlbr.app/setup/` costs
+// one redirect rather than chaining two. The query string rides along on the
+// URL object; rebuilding from the path alone would drop it.
+type RouteHandler = (
+  context: C,
+  path: string,
+  security: ReturnType<typeof securityHeaders>
+) => Response | Promise<Response>;
+
+function canonicalize(handler: RouteHandler): Handler {
+  return (context) => {
+    const url = new URL(context.req.url);
     const path = normalizePath(url.pathname);
     const wrongHost = url.hostname === WWW_HOST;
-    const headOnly = request.method === 'HEAD';
     const security = securityHeaders(url);
 
-    // Host and path are canonicalised together, so `www.dlbr.app/setup/` costs
-    // one redirect rather than chaining two. The query string rides along on
-    // the URL object; rebuilding from the path alone would drop it.
     if (wrongHost || path !== url.pathname) {
       const target = new URL(url);
       if (wrongHost) target.hostname = CANONICAL_HOST;
@@ -295,22 +306,24 @@ export default {
       });
     }
 
-    if (path === LEGACY_SECURITY_TXT) {
-      if (!READ_METHODS.has(request.method)) return methodNotAllowed(READ_ONLY_ALLOW, security);
-      return new Response(null, {
-        status: 301,
-        headers: { location: SECURITY_TXT, 'cache-control': REDIRECT_CACHE, ...security },
-      });
-    }
+    return handler(context, path, security);
+  };
+}
 
-    // Method policy is per route rather than global: when write endpoints
-    // arrive, each declares its own verbs next to its handler.
-    if (path === '/api/config') {
-      if (!READ_METHODS.has(request.method)) return methodNotAllowed(READ_ONLY_ALLOW, security);
-      return json({ lPfrUrl: '' }, headOnly, security);
-    }
+function renderRoute(headOnly: boolean): RouteHandler {
+  return (_context, path, security) => renderDocument(path, headOnly, security);
+}
 
-    if (!READ_METHODS.has(request.method)) return methodNotAllowed(READ_ONLY_ALLOW, security);
-    return renderDocument(path, headOnly, security);
-  },
-};
+function configRoute(headOnly: boolean): RouteHandler {
+  return (_context, _path, security) => json({ lPfrUrl: '' }, headOnly, security);
+}
+
+const router = Pico();
+
+router.get('/api/config', canonicalize(configRoute(false)));
+router.head('/api/config', canonicalize(configRoute(true)));
+router.get('*', canonicalize(renderRoute(false)));
+router.head('*', canonicalize(renderRoute(true)));
+router.all('*', canonicalize((_context, _path, security) => methodNotAllowed(READ_ONLY_ALLOW, security)));
+
+export default router;

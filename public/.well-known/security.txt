@@ -6,7 +6,7 @@
 # passes. Renew it before the date below; an expired security.txt is worse
 # than none, because a researcher reads it as an abandoned channel.
 
-Contact: mailto:mail@daliborgogic.com
+Contact: mailto:security@dlbr.app
 Expires: 2027-08-01T00:00:00.000Z
 Preferred-Languages: en
 Canonical: https://dlbr.app/.well-known/security.txt

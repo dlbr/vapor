@@ -6,12 +6,13 @@
   "scripts": {
     "dev": "concurrently -k -n worker,server,client \"pnpm run dev:worker\" \"pnpm run dev:server\" \"pnpm run dev:client\"",
     "dev:worker": "vite build --config vite.worker.config.ts --mode development --watch",
-    "dev:server": "wait-on --timeout 30000 dist/worker/index.mjs && wrangler dev --port 3000 --ip 127.0.0.1",
+    "dev:server": "mkdir -p dist/client && wait-on --timeout 30000 dist/worker/index.mjs && wrangler dev --port 3000 --ip 127.0.0.1",
     "dev:client": "wait-on --timeout 30000 tcp:127.0.0.1:3000 && vite --host 127.0.0.1 --port 5173",
     "build": "pnpm run types && pnpm run build:worker && pnpm run build:client",
     "types": "wrangler types",
     "build:worker": "vite build --config vite.worker.config.ts",
     "build:client": "vite build",
+    "test": "vitest run",
     "preview": "wrangler dev",
     "deploy": "pnpm run build && wrangler deploy"
   },
@@ -22,8 +23,10 @@
   },
   "devDependencies": {
     "concurrently": "latest",
+    "happy-dom": "^20.11.1",
     "typescript": "latest",
     "vite": "latest",
+    "vitest": "^4.1.10",
     "vue-tsc": "latest",
     "wait-on": "latest",
     "wrangler": "latest"

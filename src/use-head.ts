@@ -12,6 +12,8 @@ export type HeadInput = HeadConfig | (() => HeadConfig);
  * stylesheet, third-party tags) is never touched.
  */
 const OWNED = 'data-head';
+const elementOwners = new WeakMap<Element, object>();
+const htmlAttributeOwners = new Map<string, object>();
 
 function metaKey(meta: Pick<HeadMeta, 'name' | 'property'>) {
   return meta.name ? `meta:name:${meta.name}` : `meta:property:${meta.property ?? ''}`;
@@ -37,10 +39,10 @@ function elementKey(element: Element) {
 }
 
 export function useHead(input: HeadInput) {
-  // Tracking lives in the closure rather than module scope: this file is
-  // bundled into the Worker as well, where module-level mutable state is shared
-  // across requests. It is only ever written in the browser, but keeping it
-  // per-call means that cannot quietly change.
+  // Ownership lives per call. The module-level maps are written only when a
+  // browser document exists, so they cannot carry server-request state between
+  // reused Worker isolates.
+  const owner = {};
   const owned = new Map<string, Element>();
   const ownedHtmlAttrs = new Set<string>();
   let adoptedServerTags = false;
@@ -51,7 +53,14 @@ export function useHead(input: HeadInput) {
     if (!adoptedServerTags) {
       adoptedServerTags = true;
       for (const element of document.head.querySelectorAll(`[${OWNED}]`)) {
-        owned.set(elementKey(element), element);
+        if (elementOwners.has(element)) continue;
+        const key = elementKey(element);
+        if (owned.has(key)) {
+          element.remove();
+          continue;
+        }
+        elementOwners.set(element, owner);
+        owned.set(key, element);
       }
     }
 
@@ -72,6 +81,7 @@ export function useHead(input: HeadInput) {
         if (meta.property) element.setAttribute('property', meta.property);
         element.setAttribute(OWNED, '');
         document.head.appendChild(element);
+        elementOwners.set(element, owner);
         owned.set(key, element);
       }
       element.content = meta.content;
@@ -87,6 +97,7 @@ export function useHead(input: HeadInput) {
       element.href = link.href;
       element.setAttribute(OWNED, '');
       document.head.appendChild(element);
+      elementOwners.set(element, owner);
       owned.set(key, element);
     }
 
@@ -97,19 +108,25 @@ export function useHead(input: HeadInput) {
     for (const [key, element] of owned) {
       if (declared.has(key)) continue;
       element.remove();
+      elementOwners.delete(element);
       owned.delete(key);
     }
 
     const htmlAttrs = config.htmlAttrs ?? {};
     for (const attribute of ownedHtmlAttrs) {
-      if (attribute in htmlAttrs) continue;
-      document.documentElement.removeAttribute(attribute);
+      const value = htmlAttrs[attribute as keyof typeof htmlAttrs];
+      if (value !== undefined) continue;
+      if (htmlAttributeOwners.get(attribute) === owner) {
+        document.documentElement.removeAttribute(attribute);
+        htmlAttributeOwners.delete(attribute);
+      }
       ownedHtmlAttrs.delete(attribute);
     }
     for (const [name, value] of Object.entries(htmlAttrs)) {
       if (value === undefined) continue;
       document.documentElement.setAttribute(name, value);
       ownedHtmlAttrs.add(name);
+      htmlAttributeOwners.set(name, owner);
     }
   }
 
@@ -119,8 +136,17 @@ export function useHead(input: HeadInput) {
 
   function dispose() {
     stop();
-    for (const element of owned.values()) element.remove();
+    for (const element of owned.values()) {
+      element.remove();
+      elementOwners.delete(element);
+    }
     owned.clear();
+    for (const attribute of ownedHtmlAttrs) {
+      if (htmlAttributeOwners.get(attribute) !== owner) continue;
+      document.documentElement.removeAttribute(attribute);
+      htmlAttributeOwners.delete(attribute);
+    }
+    ownedHtmlAttrs.clear();
   }
 
   // `useHead` is called from component setup today, but guarding keeps it
