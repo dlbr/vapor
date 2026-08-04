@@ -3,6 +3,9 @@
   "name": "vapor",
   "main": "dist/worker/index.mjs",
   "compatibility_date": "2026-06-25",
+  "cache": {
+    "enabled": true
+  },
   // The apex is canonical. `www` is attached too, purely so the Worker can
   // answer on it and redirect — see CANONICAL_HOST in server/worker.ts.
   "routes": [
