@@ -21,7 +21,15 @@ export interface HeadConfig {
 }
 
 export function getRouteHead(path: string): HeadConfig {
-  if (path === '/' || path === '/admin') {
+  if (path === '/' || path === '/login') {
+    return {
+      title: 'Admin Sign In | DLBR ID',
+      meta: [{ name: 'description', content: 'Sign in to the DLBR identity verification dashboard.' }],
+      htmlAttrs: { lang: 'en' },
+    };
+  }
+
+  if (path === '/admin') {
     return {
       title: 'Admin Dashboard | DLBR ID',
       meta: [{ name: 'description', content: 'DLBR identity verification operations dashboard.' }],

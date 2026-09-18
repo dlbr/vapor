@@ -26,7 +26,7 @@ async function loadMetrics() {
   try {
     const response = await fetch(`/admin/api/metrics?environment=${environment.value}`);
     if (response.status === 401) {
-      window.location.assign('/auth/github');
+      window.location.assign('/login');
       return;
     }
     if (!response.ok) throw new Error('Metrics unavailable');

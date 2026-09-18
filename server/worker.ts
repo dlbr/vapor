@@ -329,13 +329,32 @@ function proxyApi(context: C): Promise<Response> {
   return target.fetch(new Request(context.req.url, context.req));
 }
 
+async function logout(context: C): Promise<Response> {
+  const target = apiTarget(context);
+  if (target) {
+    try {
+      await target.fetch(new Request(context.req.url, context.req));
+    } catch {
+      // Clear the browser cookie even if the upstream cleanup is unavailable.
+    }
+  }
+  return new Response(null, {
+    status: 302,
+    headers: {
+      location: '/',
+      'set-cookie': 'admin_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax',
+      'cache-control': 'no-store',
+    },
+  });
+}
+
 const router = Pico();
 
 router.get('/api/config', canonicalize(configRoute(false)));
 router.head('/api/config', canonicalize(configRoute(true)));
 router.get('/auth/github', proxyApi);
 router.get('/auth/github/callback', proxyApi);
-router.get('/admin/logout', proxyApi);
+router.get('/admin/logout', logout);
 router.get('/admin/api/metrics', proxyApi);
 router.get('*', canonicalize(renderRoute(false)));
 router.head('*', canonicalize(renderRoute(true)));
