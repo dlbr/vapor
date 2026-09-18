@@ -318,10 +318,25 @@ function configRoute(headOnly: boolean): RouteHandler {
   return (_context, _path, security) => json({ lPfrUrl: '' }, headOnly, security);
 }
 
+function apiTarget(context: C): Fetcher | null {
+  const environment = new URL(context.req.url).searchParams.get('environment');
+  return environment === 'production' ? context.env?.ID_PRODUCTION ?? null : context.env?.ID_STAGING ?? null;
+}
+
+function proxyApi(context: C): Promise<Response> {
+  const target = apiTarget(context);
+  if (!target) return Promise.resolve(new Response('Admin API binding unavailable', { status: 503 }));
+  return target.fetch(new Request(context.req.url, context.req));
+}
+
 const router = Pico();
 
 router.get('/api/config', canonicalize(configRoute(false)));
 router.head('/api/config', canonicalize(configRoute(true)));
+router.get('/auth/github', proxyApi);
+router.get('/auth/github/callback', proxyApi);
+router.get('/admin/logout', proxyApi);
+router.get('/admin/api/metrics', proxyApi);
 router.get('*', canonicalize(renderRoute(false)));
 router.head('*', canonicalize(renderRoute(true)));
 router.all('*', canonicalize((_context, _path, security) => methodNotAllowed(READ_ONLY_ALLOW, security)));

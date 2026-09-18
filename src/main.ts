@@ -1,55 +1,13 @@
 import { createVaporSSRApp, type VaporComponent } from '@vue/runtime-vapor';
-import { watch } from 'vue';
 import App from './App.vue';
 import { createRouter, provideRouter } from './router';
 import { routes } from './routes';
-import { useState } from './use-state';
 // Route stylesheets are imported by their own views, so the built stylesheet
 // carries every screen — that is what makes client-side navigation styled.
 import './styles/global.css';
 
 const router = createRouter(routes, window.location.pathname, window.history);
 await router.resolve(window.location.pathname);
-
-const configState = useState('config', () => ({
-	isChecked: false,
-	isConfigured: false,
-}), { persist: true });
-let setupVisited = window.location.pathname === '/setup';
-
-async function guard(path: string) {
-	if (path === '/setup') {
-		setupVisited = true;
-		return;
-	}
-
-	if (!configState.value.isChecked) {
-		try {
-			const response = await fetch('/api/config', {
-				headers: { 'X-Compatibility-Date': '2026-06-25' },
-			});
-			if (response.ok) {
-				const config = await response.json();
-				configState.value.isConfigured = Boolean(config?.lPfrUrl);
-			}
-		} catch {
-			configState.value.isConfigured = false;
-		}
-		configState.value.isChecked = true;
-	}
-
-	if (!configState.value.isConfigured && !setupVisited) {
-		await router.navigate('/setup', { replace: true });
-	}
-}
-
-watch(
-	() => router.currentPath.value,
-	(path) => {
-		void guard(path);
-	},
-	{ immediate: true },
-);
 
 const app = createVaporSSRApp(App as unknown as VaporComponent);
 provideRouter(app, router);

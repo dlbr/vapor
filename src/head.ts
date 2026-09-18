@@ -21,6 +21,14 @@ export interface HeadConfig {
 }
 
 export function getRouteHead(path: string): HeadConfig {
+  if (path === '/' || path === '/admin') {
+    return {
+      title: 'Admin Dashboard | DLBR ID',
+      meta: [{ name: 'description', content: 'DLBR identity verification operations dashboard.' }],
+      htmlAttrs: { lang: 'en' },
+    };
+  }
+
   if (path === '/setup') {
     return {
       title: 'Setup | DLBR POS',
@@ -30,8 +38,8 @@ export function getRouteHead(path: string): HeadConfig {
   }
 
   return {
-    title: 'Register | DLBR POS',
-    meta: [{ name: 'description', content: 'DLBR point of sale register.' }],
+    title: 'Admin Dashboard | DLBR ID',
+    meta: [{ name: 'description', content: 'DLBR identity verification operations dashboard.' }],
     htmlAttrs: { lang: 'en' },
   };
 }

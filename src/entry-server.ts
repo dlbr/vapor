@@ -6,8 +6,7 @@ import { createRouter, provideRouter } from './router';
 import { routes } from './routes';
 import { provideStateRegistry } from './use-state';
 import globalStyles from './styles/global.css?inline';
-import registerStyles from './styles/routes/register.css?inline';
-import setupStyles from './styles/routes/setup.css?inline';
+import adminStyles from './styles/routes/admin.css?inline';
 
 /**
  * Route path -> the stylesheet for that screen.
@@ -19,8 +18,8 @@ import setupStyles from './styles/routes/setup.css?inline';
  * A route with no entry here simply renders with the global styles.
  */
 const routeStyles: Record<string, string> = {
-  '/': registerStyles,
-  '/setup': setupStyles,
+  '/': adminStyles,
+  '/admin': adminStyles,
 };
 
 /** `</style>` is neutralised so a stylesheet can never close its own tag. */

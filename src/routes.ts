@@ -1,9 +1,8 @@
 import type { RouteConfig } from './router';
-import PosRegisterView from './views/PosRegisterView.vue';
-import PosSetupView from './views/PosSetupView.vue';
+import AdminDashboardView from './views/AdminDashboardView.vue';
 
 export const routes: RouteConfig[] = [
-  { path: '/', component: PosRegisterView },
-  { path: '/setup', component: PosSetupView },
+  { path: '/', component: AdminDashboardView },
+  { path: '/admin', component: AdminDashboardView },
   { path: '*', redirect: '/' },
 ];
