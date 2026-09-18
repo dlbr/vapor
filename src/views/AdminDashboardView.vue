@@ -51,7 +51,7 @@ onMounted(() => void loadMetrics());
     </header>
     <section class="environment-switcher" aria-label="Environment">
       <span class="switcher-label">Environment</span>
-      <button class="environment-button" :class="{ active: environment === 'production' }" type="button" @click="selectEnvironment('production')">Production</button>
+      <button class="environment-button unavailable" type="button" disabled>Production <small>(not deployed)</small></button>
       <button class="environment-button" :class="{ active: environment === 'staging' }" type="button" @click="selectEnvironment('staging')">Staging</button>
     </section>
     <section class="metrics-panel">

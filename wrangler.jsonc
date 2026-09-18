@@ -16,7 +16,6 @@
     "binding": "ASSETS"
   },
   "services": [
-    { "binding": "ID_PRODUCTION", "service": "id" },
     { "binding": "ID_STAGING", "service": "id-staging" }
   ],
   "minify": true

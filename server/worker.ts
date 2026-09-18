@@ -320,7 +320,7 @@ function configRoute(headOnly: boolean): RouteHandler {
 
 function apiTarget(context: C): Fetcher | null {
   const environment = new URL(context.req.url).searchParams.get('environment');
-  return environment === 'production' ? context.env?.ID_PRODUCTION ?? null : context.env?.ID_STAGING ?? null;
+  return environment === 'production' ? null : context.env?.ID_STAGING ?? null;
 }
 
 function proxyApi(context: C): Promise<Response> {
