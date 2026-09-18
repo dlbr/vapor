@@ -19,8 +19,13 @@ pnpm install
 pnpm run types
 pnpm run dev
 pnpm run build
+pnpm run hooks:install
 pnpm run preview
 ```
+
+The shared `pre-push` hook runs `pnpm run validate` before pushing. Deployments
+through `pnpm run deploy` run the same validation via the `predeploy` lifecycle
+hook.
 
 `pnpm run dev` runs three processes: a watching Worker build, `wrangler dev` on
 `http://127.0.0.1:3000`, and Vite on `http://127.0.0.1:5173` for client assets

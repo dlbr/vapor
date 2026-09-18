@@ -13,6 +13,9 @@
     "build:worker": "vite build --config vite.worker.config.ts",
     "build:client": "vite build",
     "test": "vitest run",
+    "validate": "pnpm run build && pnpm test",
+    "predeploy": "pnpm run validate",
+    "hooks:install": "git config core.hooksPath .githooks && chmod +x .githooks/pre-push",
     "preview": "wrangler dev",
     "deploy": "pnpm run build && wrangler deploy"
   },
