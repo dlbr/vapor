@@ -1,5 +1,5 @@
 <script setup vapor lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import '../styles/routes/admin.css';
 
 interface Metrics {
@@ -12,6 +12,13 @@ interface Metrics {
 const metrics = ref<Metrics | null>(null);
 const error = ref(false);
 const environment = ref<'production' | 'staging'>('staging');
+const totalSessions = computed(() => metrics.value?.total_estimated ?? '—');
+const verifiedSessions = computed(() => metrics.value?.verified_estimated ?? '—');
+const failedSessions = computed(() => metrics.value?.failed_estimated ?? '—');
+const successRate = computed(() => {
+  const value = metrics.value?.success_rate;
+  return value == null ? '—' : `${(value * 100).toFixed(1)}%`;
+});
 
 async function loadMetrics() {
   metrics.value = null;
@@ -58,10 +65,10 @@ onMounted(() => void loadMetrics());
       <div class="panel-heading"><div><p class="eyebrow">Last 24 hours</p><h2>Verification activity</h2></div></div>
       <p v-if="error" class="error" role="alert">Metrics are temporarily unavailable.</p>
       <div v-else class="metrics-grid">
-        <article><span>Total sessions</span><strong>{{ metrics?.total_estimated ?? '—' }}</strong></article>
-        <article><span>Verified</span><strong>{{ metrics?.verified_estimated ?? '—' }}</strong></article>
-        <article><span>Failed</span><strong>{{ metrics?.failed_estimated ?? '—' }}</strong></article>
-        <article><span>Success rate</span><strong>{{ metrics?.success_rate == null ? '—' : `${(metrics.success_rate * 100).toFixed(1)}%` }}</strong></article>
+        <article><span>Total sessions</span><strong>{{ totalSessions }}</strong></article>
+        <article><span>Verified</span><strong>{{ verifiedSessions }}</strong></article>
+        <article><span>Failed</span><strong>{{ failedSessions }}</strong></article>
+        <article><span>Success rate</span><strong>{{ successRate }}</strong></article>
       </div>
     </section>
   </main>
