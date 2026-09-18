@@ -9,6 +9,8 @@ interface Metrics {
   success_rate: number | null;
   latency_ms_p50: number | null;
   latency_ms_p95: number | null;
+  processing_latency_ms_p50: number | null;
+  processing_latency_ms_p95: number | null;
   by_credential_type: CredentialBreakdown[];
 }
 
@@ -36,6 +38,8 @@ const successRate = computed(() => {
 });
 const p50Latency = computed(() => formatLatency(metrics.value?.latency_ms_p50));
 const p95Latency = computed(() => formatLatency(metrics.value?.latency_ms_p95));
+const p50ProcessingLatency = computed(() => formatLatency(metrics.value?.processing_latency_ms_p50));
+const p95ProcessingLatency = computed(() => formatLatency(metrics.value?.processing_latency_ms_p95));
 const breakdown = computed(() => metrics.value?.by_credential_type ?? []);
 const updatedLabel = computed(() => updatedAt.value ? `Updated ${updatedAt.value.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Not loaded');
 const environmentLabel = computed(() => environment.value === 'staging' ? 'Staging' : 'Production');
@@ -104,7 +108,7 @@ onUnmounted(() => {
       <article class="metric-card"><span class="metric-label">Success rate</span><strong>{{ successRate }}</strong><span class="metric-note">Across all credentials</span></article>
     </section>
     <section v-if="!error" class="lower-grid">
-      <article class="panel-card latency-card"><div class="panel-heading"><div><p class="eyebrow">Performance</p><h2>Verification latency</h2></div></div><div class="latency-values"><div><span>P50</span><strong>{{ p50Latency }}</strong><small>Typical completion</small></div><div><span>P95</span><strong>{{ p95Latency }}</strong><small>Tail latency</small></div></div></article>
+      <article class="panel-card latency-card"><div class="panel-heading"><div><p class="eyebrow">Performance</p><h2>Verification latency</h2><p class="panel-note">End-to-end includes wallet and network time. Processing is backend-only.</p></div></div><div class="latency-group"><h3>End-to-end completion</h3><div class="latency-values"><div><span>P50</span><strong>{{ p50Latency }}</strong><small>Typical session</small></div><div><span>P95</span><strong>{{ p95Latency }}</strong><small>Tail session</small></div></div></div><div class="latency-group"><h3>Backend processing</h3><div class="latency-values"><div><span>P50</span><strong>{{ p50ProcessingLatency }}</strong><small>Typical verification</small></div><div><span>P95</span><strong>{{ p95ProcessingLatency }}</strong><small>Tail verification</small></div></div></div></article>
       <article class="panel-card"><div class="panel-heading"><div><p class="eyebrow">Coverage</p><h2>Credential types</h2></div></div><div v-if="breakdown.length" class="credential-list"><div v-for="entry in breakdown" :key="entry.credentialTypes" class="credential-row"><div><strong>{{ entry.credentialTypes }}</strong><small>{{ formatNumber(entry.estimatedCount) }} sessions</small></div><span>{{ entry.successRate == null ? '—' : `${(entry.successRate * 100).toFixed(1)}%` }}</span></div></div><p v-else class="empty-state">No verification data in this window.</p></article>
     </section>
   </main>
