@@ -18,7 +18,7 @@ const useCases = [
 
 <template>
   <main class="page">
-    <header class="site-header"><a class="wordmark" href="/" aria-label="DLBR EID home">DLBR<span>EID</span></a><a class="header-link" href="https://console.dlbr.app/">Log in ↗</a></header>
+    <header class="site-header"><a class="brand" href="/" aria-label="DLBR EID home"><img src="/dlbr-logo.svg" width="42" height="26" alt="" aria-hidden="true"></a><a class="header-link" href="https://console.dlbr.app/">Log in ↗</a></header>
     <div class="hero">
       <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span> Pilot underway</p>
       <h1>EUDI Wallet verification for relying parties.</h1>
@@ -36,7 +36,7 @@ const useCases = [
       <div class="detail-list"><article><h3>Clear commercial terms</h3><p>We discuss expected volume, rollout and support with each pilot team before confirming production terms.</p></article><article><h3>Data minimization</h3><p>Verified claims stay in temporary session storage for up to 30 seconds while the result is delivered. Account data is stored in the EU region.</p></article><article><h3>Operational controls</h3><p>Separate test and production keys, audit records, usage visibility and team roles support a reviewed rollout.</p></article></div>
       <a class="inline-link" href="https://dlbr.app/privacy">Privacy and data handling ↗</a>
     </section>
-    <section aria-labelledby="cases-heading"><h2 id="cases-heading">use cases</h2><div class="case-list"><a v-for="useCase in useCases" :key="useCase.category" :href="useCase.href" class="case-card"><span>{{ useCase.category }}</span><h3>{{ useCase.title }} <span aria-hidden="true">↗</span></h3><p>{{ useCase.description }}</p></a></div><a class="inline-link" href="https://dlbr.app/use-cases">Explore all use cases ↗</a></section>
+    <section aria-labelledby="cases-heading"><h2 id="cases-heading">selected use cases</h2><div class="case-list"><a v-for="useCase in useCases" :key="useCase.category" :href="useCase.href" class="case-card"><span>{{ useCase.category }}</span><h3>{{ useCase.title }} <span aria-hidden="true">↗</span></h3><p>{{ useCase.description }}</p></a></div><a class="inline-link" href="https://dlbr.app/use-cases">Explore all use cases ↗</a></section>
     <section aria-labelledby="developers-heading"><h2 id="developers-heading">for developers</h2><p class="section-intro">Technical detail for the team building your verification flow.</p><nav class="resource-links" aria-label="Developer resources"><a href="https://docs.dlbr.app/sdk/quickstarts">Integration guides <span aria-hidden="true">↗</span></a><a href="https://docs.dlbr.app/sdk/api-reference">TypeScript SDK <span aria-hidden="true">↗</span></a><a href="https://docs.dlbr.app/api/">Gateway API <span aria-hidden="true">↗</span></a><a href="https://community.dlbr.app/">Community <span aria-hidden="true">↗</span></a></nav></section>
     <footer class="site-footer"><h2>start a pilot</h2><p>Tell us about your verification use case and the rollout you have in mind.</p><div class="footer-actions"><a href="https://console.dlbr.app/signup" class="pill">Request pilot access <span aria-hidden="true">↗</span></a><a href="https://dlbr.app/contact/sales" class="text-link">Contact sales ↗</a></div><div class="meta"><span>© 2026 DLBR</span><a href="mailto:contact@dlbr.app">contact@dlbr.app ↗</a></div></footer>
   </main>
@@ -45,8 +45,8 @@ const useCases = [
 <style scoped>
 .page { width: min(100% - 32px, 520px); margin: auto; padding: 40px 0 32px; }
 .site-header { display: flex; align-items: center; justify-content: space-between; }
-.wordmark { font-size: 19px; font-weight: 800; letter-spacing: -.09em; line-height: 1; }
-.wordmark span { margin-left: 4px; color: var(--faint); font-size: 10px; letter-spacing: 0; vertical-align: top; }
+.brand { display: inline-flex; align-items: center; min-width: 44px; min-height: 44px; }
+.brand img { width: 42px; height: 26px; object-fit: contain; filter: invert(1); }
 .header-link { color: var(--muted); font-size: 12px; }
 .hero { margin-top: min(30vh, 240px); }
 .eyebrow, h2 { margin: 0 0 24px; color: var(--faint); font-size: 12px; font-weight: 500; line-height: 16px; text-transform: uppercase; letter-spacing: .04em; }
@@ -77,12 +77,13 @@ h3 { margin: 0 0 5px; font-size: 14px; font-weight: 500; line-height: 1.4; }
 .detail-list article { padding: 18px 0; border-top: 1px solid var(--line); }
 .detail-list article:last-child { border-bottom: 1px solid var(--line); }
 .inline-link { display: inline-block; margin-top: 20px; }
-.case-list { display: grid; gap: 10px; }
-.case-card { display: block; padding: 20px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); transition: background .18s ease; }
+.case-list { display: flex; gap: 12px; overflow-x: auto; overscroll-behavior-inline: contain; scroll-snap-type: x mandatory; scroll-padding-inline: 2px; padding: 2px 2px 12px; scrollbar-width: thin; }
+.case-card { display: flex; flex: 0 0 82%; flex-direction: column; min-height: 190px; scroll-snap-align: start; scroll-snap-stop: always; padding: 20px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); transition: background .18s ease; }
 .case-card:hover { background: var(--surface-hover); }
 .case-card > span { display: block; margin-bottom: 22px; color: var(--faint); font-size: 10px; text-transform: uppercase; }
 .case-card h3 { display: flex; justify-content: space-between; gap: 12px; }
 .case-card h3 span { color: var(--faint); }
+.case-card p { margin-top: auto; padding-top: 18px; }
 .resource-links { display: grid; border-top: 1px solid var(--line); }
 .resource-links a { display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
 .resource-links span { color: var(--faint); }

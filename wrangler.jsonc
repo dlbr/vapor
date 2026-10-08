@@ -18,7 +18,8 @@
   },
   "services": [
     { "binding": "ID_STAGING", "service": "id-staging" },
-    { "binding": "OG_IMAGES", "service": "id-og" }
+    { "binding": "OG_IMAGES", "service": "id-og" },
+    { "binding": "BLOG_CMS", "service": "id-blog-cms" }
   ],
   "minify": true
 }

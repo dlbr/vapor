@@ -1,6 +1,14 @@
 import { renderApp } from '../src/entry-server';
 import { Pico } from './pico';
 import type { C, Handler } from './pico-types';
+import {
+  blogApiRoute,
+  blogFeedRoute,
+  blogMediaRoute,
+  blogSitemapRoute,
+  loadBlogPageForRender,
+} from './blog';
+import type { BlogPageData } from '../src/blog-types';
 
 declare const __DEV_SHELL__: boolean;
 
@@ -64,14 +72,14 @@ const ENCODER = new TextEncoder();
  * navigation, leaving a blank screen. Flip it to enforcing once Vapor's
  * `template()` uses the policy.
  */
-function documentCsp() {
+function documentCsp(allowRemoteImages = false) {
   return [
     "default-src 'self'",
     "base-uri 'self'",
     "object-src 'none'",
     "frame-ancestors 'none'",
     "form-action 'self'",
-    "img-src 'self' data:",
+    allowRemoteImages ? "img-src 'self' data: https:" : "img-src 'self' data:",
     "style-src 'self'",
     "script-src 'self'",
     "connect-src 'self'",
@@ -181,9 +189,10 @@ function json(body: unknown, headOnly: boolean, security: Record<string, string>
  * by dropping the stream: Vue starts rendering inside the stream's `start`
  * callback, so an unread stream has already done the work.
  */
-async function renderDocument(path: string, headOnly: boolean, security: Record<string, string>) {
+async function renderDocument(path: string, headOnly: boolean, security: Record<string, string>, blogPageData: BlogPageData | null = null) {
   const { status, redirect, head, htmlAttrs, stream: appStream } = await renderApp(path, {
     includeBody: !headOnly,
+    blogPageData,
   });
 
   if (redirect) {
@@ -193,12 +202,12 @@ async function renderDocument(path: string, headOnly: boolean, security: Record<
   const documentHeaders: Record<string, string> = {
     'content-type': 'text/html; charset=utf-8',
     // Dev must never be cached; the shell points at a Vite server that moves.
-    'cache-control': IS_DEV_SHELL ? 'no-store' : DOCUMENT_CACHE,
+    'cache-control': IS_DEV_SHELL || blogPageData?.preview || status !== 200 ? 'no-store' : DOCUMENT_CACHE,
     ...security,
     // Dev loads modules cross-origin from Vite and relies on its inline HMR
     // client, neither of which this policy allows. Production only.
     ...(IS_DEV_SHELL ? {} : {
-      'content-security-policy': documentCsp(),
+      'content-security-policy': documentCsp(path === '/blog' || path.startsWith('/blog/')),
       'content-security-policy-report-only': TRUSTED_TYPES_REPORT_ONLY,
     }),
   };
@@ -275,7 +284,14 @@ function canonicalize(handler: RouteHandler): Handler {
 }
 
 function renderRoute(headOnly: boolean): RouteHandler {
-  return (_context, path, security) => renderDocument(path, headOnly, security);
+  return async (context, path, security) => {
+    let blogPageData: BlogPageData | null = null;
+    if (path === '/blog' || path.startsWith('/blog/')) {
+      const previewToken = new URL(context.req.url).searchParams.get('_preview') ?? undefined;
+      blogPageData = await loadBlogPageForRender(context, path, previewToken);
+    }
+    return renderDocument(path, headOnly, security, blogPageData);
+  };
 }
 
 function configRoute(headOnly: boolean): RouteHandler {
@@ -320,6 +336,16 @@ async function logout(context: C): Promise<Response> {
 
 const router = Pico();
 
+router.get('/api/blog', canonicalize((context, path, security) => blogApiRoute(context, path, false, security)));
+router.head('/api/blog', canonicalize((context, path, security) => blogApiRoute(context, path, true, security)));
+router.get('/api/blog/:slug', canonicalize((context, path, security) => blogApiRoute(context, path, false, security)));
+router.head('/api/blog/:slug', canonicalize((context, path, security) => blogApiRoute(context, path, true, security)));
+router.get('/blog/rss.xml', canonicalize((context, _path, security) => blogFeedRoute(context, false, security)));
+router.head('/blog/rss.xml', canonicalize((context, _path, security) => blogFeedRoute(context, true, security)));
+router.get('/blog/sitemap.xml', canonicalize((context, _path, security) => blogSitemapRoute(context, false, security)));
+router.head('/blog/sitemap.xml', canonicalize((context, _path, security) => blogSitemapRoute(context, true, security)));
+router.get('/blog/media/*', canonicalize((context, path, security) => blogMediaRoute(context, path, false, security)));
+router.head('/blog/media/*', canonicalize((context, path, security) => blogMediaRoute(context, path, true, security)));
 router.get('/api/config', canonicalize(configRoute(false)));
 router.head('/api/config', canonicalize(configRoute(true)));
 router.get('/og-image', canonicalize((context) => proxyOgImage(context)));

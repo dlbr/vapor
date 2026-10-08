@@ -2,9 +2,12 @@
 import { useRouter } from './router';
 import { getRouteHead } from './head';
 import { useHead } from './use-head';
+import { inject } from 'vue';
+import { blogPageDataKey } from './blog-state';
 
 const { currentComponent, currentPath } = useRouter();
-useHead(() => getRouteHead(currentPath.value));
+const blogData = inject(blogPageDataKey, null);
+useHead(() => getRouteHead(currentPath.value, blogData?.value ?? null));
 </script>
 
 <template>

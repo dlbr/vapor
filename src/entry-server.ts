@@ -5,6 +5,9 @@ import { getRouteHead, type HeadConfig } from './head';
 import { createRouter, provideRouter } from './router';
 import { routes } from './routes';
 import { provideStateRegistry } from './use-state';
+import { shallowRef } from 'vue';
+import { blogPageDataKey } from './blog-state';
+import type { BlogPageData } from './blog-types';
 
 export interface RenderResult {
   status: number;
@@ -30,6 +33,7 @@ export interface RenderOptions {
    * which is what a `HEAD` request needs.
    */
   includeBody?: boolean;
+  blogPageData?: BlogPageData | null;
 }
 
 function escapeHtml(value: string) {
@@ -87,11 +91,11 @@ export async function renderApp(path: string, options: RenderOptions = {}): Prom
   // instead of followed, so the browser gets a real 302 and the correct URL.
   const router = createRouter(routes, path, null);
   const result = await router.resolve(path);
-  const head = getRouteHead(path);
+  const head = getRouteHead(path, options.blogPageData ?? null);
 
   if (result.status !== 200) {
     return {
-      status: result.status,
+      status: options.blogPageData?.path === path ? options.blogPageData.status : result.status,
       redirect: result.redirect,
       head: renderHead(head),
       htmlAttrs: renderHtmlAttrs(head),
@@ -102,7 +106,7 @@ export async function renderApp(path: string, options: RenderOptions = {}): Prom
   }
 
   const base = {
-    status: 200 as const,
+    status: options.blogPageData?.path === path ? options.blogPageData.status : 200 as const,
     head: renderHead(head),
     htmlAttrs: renderHtmlAttrs(head),
   };
@@ -114,6 +118,7 @@ export async function renderApp(path: string, options: RenderOptions = {}): Prom
   const app = createSSRApp(App as never);
   provideRouter(app, router);
   provideStateRegistry(app);
+  app.provide(blogPageDataKey, shallowRef(options.blogPageData ?? null));
 
   return {
     ...base,
