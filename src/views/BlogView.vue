@@ -8,6 +8,7 @@ import PortableTextNode from '../components/PortableTextNode.vue';
 import '../styles/blog.css';
 
 const router = useRouter();
+const brandLogo = '/dlbr-logo.svg';
 const providedData = inject(blogPageDataKey, null);
 const initialData = providedData?.value?.path === router.currentPath.value ? providedData.value : null;
 const pageData = shallowRef<BlogPageData | null>(initialData);
@@ -136,6 +137,7 @@ onUnmounted(() => window.removeEventListener('hashchange', readTopicFilters));
   <div class="blog-page">
     <div id="blog-page-data" class="blog-bootstrap" aria-hidden="true" :data-json="bootstrapData"></div>
     <main id="main" class="blog-shell">
+      <header class="blog-site-header"><a class="blog-brand" href="/" aria-label="DLBR EID home"><img :src="brandLogo" width="42" height="26" alt="" aria-hidden="true"></a><a href="https://console.dlbr.app/">Log in ↗</a></header>
       <template v-if="isArchive">
         <section class="blog-intro">
           <p class="blog-eyebrow">DLBR / INSIGHTS</p>

@@ -19,6 +19,7 @@ export default defineConfig({
 			}),
 			BLOG_CMS: bindings.worker({
 				worker: "id-blog-cms",
+				dev: { remote: true },
 			}),
 			BLOG_CMS_TOKEN: bindings.secret(),
 			ASSETS: bindings.assets(),
