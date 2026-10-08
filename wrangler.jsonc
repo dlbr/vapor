@@ -17,7 +17,8 @@
     "binding": "ASSETS"
   },
   "services": [
-    { "binding": "ID_STAGING", "service": "id-staging" }
+    { "binding": "ID_STAGING", "service": "id-staging" },
+    { "binding": "OG_IMAGES", "service": "id-og" }
   ],
   "minify": true
 }

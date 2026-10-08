@@ -5,41 +5,6 @@ import { getRouteHead, type HeadConfig } from './head';
 import { createRouter, provideRouter } from './router';
 import { routes } from './routes';
 import { provideStateRegistry } from './use-state';
-import globalStyles from './styles/global.css?inline';
-import adminStyles from './styles/routes/admin.css?inline';
-import loginStyles from './styles/routes/login.css?inline';
-
-/**
- * Route path -> the stylesheet for that screen.
- *
- * Deliberately keyed by path rather than derived from `routes.ts`: only the
- * server needs these strings, and importing them from shared route config
- * would embed every screen's CSS into the client JS bundle as well.
- *
- * A route with no entry here simply renders with the global styles.
- */
-const routeStyles: Record<string, string> = {
-  '/': loginStyles,
-  '/login': loginStyles,
-  '/admin': adminStyles,
-};
-
-/** `</style>` is neutralised so a stylesheet can never close its own tag. */
-function sanitizeCss(css: string) {
-  return css.replace(/<\/(style)/gi, '<\\/$1');
-}
-
-/**
- * Critical CSS for one route: the shared layer plus that screen's own rules,
- * and nothing belonging to screens the visitor has not reached.
- *
- * Inlining this beats linking it — a linked stylesheet is render-blocking, so
- * it costs a round trip before first paint. The remaining screens' CSS arrives
- * with the full stylesheet, which the document loads without blocking paint.
- */
-export function getInlineStyles(path: string) {
-  return sanitizeCss(globalStyles + (routeStyles[path] ?? ''));
-}
 
 export interface RenderResult {
   status: number;
@@ -49,8 +14,6 @@ export interface RenderResult {
   head: string;
   /** Serialized attributes for the `<html>` element, already escaped. */
   htmlAttrs: string;
-  /** Critical CSS for this route: global layer plus this screen's own rules. */
-  styles: string;
   /**
    * App markup. Null for redirects, misses, and `includeBody: false`.
    *
@@ -134,7 +97,6 @@ export async function renderApp(path: string, options: RenderOptions = {}): Prom
       htmlAttrs: renderHtmlAttrs(head),
       // No document is produced for a redirect or a miss, so there is nothing
       // for critical CSS to be critical to.
-      styles: '',
       stream: null,
     };
   }
@@ -146,7 +108,7 @@ export async function renderApp(path: string, options: RenderOptions = {}): Prom
   };
 
   if (options.includeBody === false) {
-    return { ...base, styles: '', stream: null };
+    return { ...base,  stream: null };
   }
 
   const app = createSSRApp(App as never);
@@ -155,7 +117,6 @@ export async function renderApp(path: string, options: RenderOptions = {}): Prom
 
   return {
     ...base,
-    styles: getInlineStyles(path),
     stream: renderToWebStream(app, {}),
   };
 }

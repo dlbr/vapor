@@ -49,37 +49,11 @@ function securityHeaders(url: URL) {
 }
 
 const ENCODER = new TextEncoder();
-const styleHashCache = new Map<string, string>();
-
-/**
- * CSP source expression for the inlined critical CSS.
- *
- * Deliberately a content hash rather than a nonce. These documents are cached
- * at the edge, and a cached response replays one nonce to every visitor for the
- * life of the entry — which is exactly what a nonce exists to prevent. A hash
- * is stable under caching, and pins the precise stylesheet rather than merely
- * vouching for whatever arrives.
- *
- * Memoised in module scope, which is safe here only because the input is a
- * build-time constant: there are two possible stylesheets and neither derives
- * from request data.
- */
-async function styleHash(css: string) {
-  const cached = styleHashCache.get(css);
-  if (cached) return cached;
-
-  const digest = await crypto.subtle.digest('SHA-256', ENCODER.encode(css));
-  const hash = `'sha256-${btoa(String.fromCharCode(...new Uint8Array(digest)))}'`;
-  styleHashCache.set(css, hash);
-  return hash;
-}
-
 /**
  * Content Security Policy for HTML responses.
  *
- * The inlined critical CSS is allowed by content hash rather than by
- * `'unsafe-inline'`, and there are no inline scripts at all, so `script-src`
- * needs nothing beyond `'self'`.
+ * Styles and scripts are loaded from same-origin assets. There are no inline
+ * styles or scripts in the document.
  *
  * `require-trusted-types-for 'script'` is deliberately **absent** here and
  * report-only below. `@vue/runtime-vapor@3.6.0-rc.2` assigns compiled templates
@@ -90,7 +64,7 @@ async function styleHash(css: string) {
  * navigation, leaving a blank screen. Flip it to enforcing once Vapor's
  * `template()` uses the policy.
  */
-function documentCsp(styleSource: string) {
+function documentCsp() {
   return [
     "default-src 'self'",
     "base-uri 'self'",
@@ -98,7 +72,7 @@ function documentCsp(styleSource: string) {
     "frame-ancestors 'none'",
     "form-action 'self'",
     "img-src 'self' data:",
-    `style-src 'self' ${styleSource}`,
+    "style-src 'self'",
     "script-src 'self'",
     "connect-src 'self'",
     'upgrade-insecure-requests',
@@ -208,7 +182,7 @@ function json(body: unknown, headOnly: boolean, security: Record<string, string>
  * callback, so an unread stream has already done the work.
  */
 async function renderDocument(path: string, headOnly: boolean, security: Record<string, string>) {
-  const { status, redirect, head, htmlAttrs, styles, stream: appStream } = await renderApp(path, {
+  const { status, redirect, head, htmlAttrs, stream: appStream } = await renderApp(path, {
     includeBody: !headOnly,
   });
 
@@ -224,7 +198,7 @@ async function renderDocument(path: string, headOnly: boolean, security: Record<
     // Dev loads modules cross-origin from Vite and relies on its inline HMR
     // client, neither of which this policy allows. Production only.
     ...(IS_DEV_SHELL ? {} : {
-      'content-security-policy': documentCsp(await styleHash(styles)),
+      'content-security-policy': documentCsp(),
       'content-security-policy-report-only': TRUSTED_TYPES_REPORT_ONLY,
     }),
   };
@@ -236,18 +210,8 @@ async function renderDocument(path: string, headOnly: boolean, security: Record<
   // The script tag sits at the end of the body, so on a streamed response the
   // browser would not discover it until the app had finished rendering.
   // Preloading from the head starts that fetch in the first flush.
-  // Critical CSS: the global layer plus this screen's own rules. Inline it in
-  // dev as well so a hard reload never paints the SSR markup before Vite's
-  // client module has injected its stylesheet.
-  //
-  // This is the only stylesheet in the document. The full sheet — covering
-  // screens this response did not render — is attached by the client after
-  // hydration, because a `<link rel="stylesheet">` is render-blocking wherever
-  // it sits in the markup, including at the end of the body. Leaving it here
-  // put a file this page never needs into the critical request chain.
-  const criticalCss = `<style>${styles}</style>`;
-
-  const opening = `<!doctype html><html${htmlAttrs ? ` ${htmlAttrs}` : ''}><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="icon" href="data:,">${head}${MODULE_PRELOAD}${criticalCss}</head><body><div id="app">`;
+  const stylesheet = IS_DEV_SHELL ? '' : '<link rel="stylesheet" href="/assets/main.css">';
+  const opening = `<!doctype html><html${htmlAttrs ? ` ${htmlAttrs}` : ''}><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="icon" href="data:,">${head}${MODULE_PRELOAD}${stylesheet}</head><body><div id="app">`;
   const closing = `</div>${CLIENT_SCRIPTS}</body></html>`;
 
   const stream = new ReadableStream<Uint8Array>({
@@ -329,6 +293,12 @@ function proxyApi(context: C): Promise<Response> {
   return target.fetch(new Request(context.req.url, context.req));
 }
 
+function proxyOgImage(context: C): Promise<Response> {
+  const target = (context.env as { OG_IMAGES?: Fetcher } | undefined)?.OG_IMAGES;
+  if (!target) return Promise.resolve(new Response('OG image service unavailable', { status: 503 }));
+  return target.fetch(new Request(context.req.url, context.req));
+}
+
 async function logout(context: C): Promise<Response> {
   const target = apiTarget(context);
   if (target) {
@@ -352,6 +322,8 @@ const router = Pico();
 
 router.get('/api/config', canonicalize(configRoute(false)));
 router.head('/api/config', canonicalize(configRoute(true)));
+router.get('/og-image', canonicalize((context) => proxyOgImage(context)));
+router.head('/og-image', canonicalize((context) => proxyOgImage(context)));
 router.get('/auth/github', proxyApi);
 router.get('/auth/github/callback', proxyApi);
 router.get('/admin/logout', logout);
