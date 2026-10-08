@@ -106,6 +106,43 @@ export function getRouteHead(path: string, blogData: BlogPageData | null = null)
     };
   }
 
+  if (path === '/use-cases') {
+    const title = 'Digital Identity Verification Use Cases';
+    const description = 'Explore how relying parties can use EUDI Wallet verification in onboarding, mobility and age assurance flows.';
+    return {
+      title: `${title} | DLBR EID`,
+      meta: [
+        { name: 'description', content: description },
+        { property: 'og:title', content: `${title} | DLBR EID` },
+        { property: 'og:description', content: description },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: 'https://dlbr.app/use-cases' },
+      ],
+      link: [{ rel: 'canonical', href: 'https://dlbr.app/use-cases' }],
+      htmlAttrs: { lang: 'en' },
+    };
+  }
+
+  if (path === '/privacy' || path === '/terms') {
+    const isPrivacy = path === '/privacy';
+    const title = isPrivacy ? 'Privacy Policy — DLBR EID' : 'Terms of Service — DLBR EID';
+    const description = isPrivacy
+      ? 'Learn how DLBR handles personal data, cookies, consent and privacy when you visit dlbr.app or use DLBR EID.'
+      : 'Read the terms governing access to DLBR EID identity verification services.';
+    return {
+      title,
+      meta: [
+        { name: 'description', content: description },
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: `https://dlbr.app${path}` },
+      ],
+      link: [{ rel: 'canonical', href: `https://dlbr.app${path}` }],
+      htmlAttrs: { lang: 'en' },
+    };
+  }
+
   if (path === '/admin') {
     return {
       title: 'Admin Dashboard | DLBR ID',

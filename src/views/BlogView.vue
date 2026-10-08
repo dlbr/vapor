@@ -84,6 +84,16 @@ function readingMinutes(post: BlogPost) {
 }
 
 const articleNodes = computed(() => activeData.value?.post ? portableTextNodes(activeData.value.post.content) : []);
+const adjacentPosts = computed(() => {
+  const post = activeData.value?.post;
+  if (!post || activeData.value?.preview) return { previous: null, next: null };
+  const index = activeData.value.posts.findIndex((item) => item.slug === post.slug);
+  if (index < 0) return { previous: null, next: null };
+  return {
+    previous: activeData.value.posts[index + 1] ?? null,
+    next: activeData.value.posts[index - 1] ?? null,
+  };
+});
 
 async function fetchPage(path: string, signal: AbortSignal) {
   const endpoint = new URL(path === '/blog' ? '/api/blog' : `/api/blog/${path.slice('/blog/'.length)}`, window.location.origin);
@@ -156,7 +166,6 @@ onUnmounted(() => window.removeEventListener('hashchange', readTopicFilters));
         </div>
         <section v-if="activeData?.status === 200 && filteredPosts.length" class="blog-post-grid" aria-label="Latest articles">
           <article v-for="post in filteredPosts" :key="post.id || post.slug" class="blog-card">
-            <a v-if="imageSource(post)" class="blog-card-image" :href="postPath(post)" tabindex="-1" aria-hidden="true"><img :src="imageSource(post) ?? ''" :alt="imageAlt(post)" loading="lazy" decoding="async"></a>
             <div class="blog-card-content">
               <div class="blog-meta"><time v-if="postDate(post)" :datetime="postDate(post)?.machine">{{ postDate(post)?.display }}</time><span v-if="postDate(post)" aria-hidden="true">·</span><span>{{ readingMinutes(post) }} min read</span></div>
               <nav v-if="post.categories?.length" class="blog-topics" aria-label="Article categories"><a v-for="category in post.categories" :key="category.slug" :href="topicHref('category', category.slug)">{{ category.label }}</a></nav>
@@ -185,7 +194,14 @@ onUnmounted(() => window.removeEventListener('hashchange', readTopicFilters));
         </header>
         <figure v-if="imageSource(activeData.post)" class="blog-article-hero"><img :src="imageSource(activeData.post) ?? ''" :alt="imageAlt(activeData.post)" fetchpriority="high"></figure>
         <div class="blog-article-content typeset"><PortableTextNode v-for="node in articleNodes" :key="node.key" :node="node" /></div>
-        <footer class="blog-article-end"><nav v-if="activeData.post.tags?.length" class="blog-topics blog-tags" aria-label="Article tags"><a v-for="tag in activeData.post.tags" :key="tag.slug" :href="topicHref('tag', tag.slug)">{{ tag.label }}</a></nav><a href="/blog">Read more from DLBR <span aria-hidden="true">→</span></a></footer>
+        <footer class="blog-article-end">
+          <nav v-if="activeData.post.tags?.length" class="blog-topics blog-tags" aria-label="Article tags"><a v-for="tag in activeData.post.tags" :key="tag.slug" :href="topicHref('tag', tag.slug)">{{ tag.label }}</a></nav>
+          <nav v-if="adjacentPosts.previous || adjacentPosts.next" class="blog-post-navigation" aria-label="Post navigation">
+            <a v-if="adjacentPosts.previous" class="blog-post-navigation-link blog-post-navigation-link--previous" :href="postPath(adjacentPosts.previous)"><span>← Previous post</span><strong>{{ adjacentPosts.previous.title }}</strong></a>
+            <a v-if="adjacentPosts.next" class="blog-post-navigation-link blog-post-navigation-link--next" :href="postPath(adjacentPosts.next)"><span>Next post →</span><strong>{{ adjacentPosts.next.title }}</strong></a>
+          </nav>
+          <a href="/blog">All articles <span aria-hidden="true">→</span></a>
+        </footer>
       </article>
 
       <section v-else-if="isArticle && loading" class="blog-empty" aria-live="polite"><p class="blog-eyebrow">DLBR / INSIGHTS</p><h1>Loading article…</h1></section>

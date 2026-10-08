@@ -152,6 +152,32 @@ export async function latestBlogPosts(context: C, limit = 20, includeContent = f
   return result.posts;
 }
 
+async function neighboringBlogPosts(context: C, slug: string): Promise<BlogPost[]> {
+  let cursor: string | undefined;
+  let newerPost: BlogPost | null = null;
+
+  // The CMS list API is ordered newest-first and exposes a cursor. Walk only
+  // as far as needed to locate this post, then return its immediate neighbors.
+  for (let pageNumber = 0; pageNumber < 500; pageNumber += 1) {
+    const page = await fetchPostsPage(context, 100, cursor);
+    const index = page.posts.findIndex((post) => post.slug === slug);
+
+    if (index >= 0) {
+      const currentPost = page.posts[index]!;
+      const olderPost = page.posts[index + 1]
+        ?? (page.cursor ? (await fetchPostsPage(context, 100, page.cursor)).posts[0] ?? null : null);
+      const newer = page.posts[index - 1] ?? newerPost;
+      return [newer, currentPost, olderPost].filter((post): post is BlogPost => post !== null);
+    }
+
+    if (!page.cursor) return [];
+    newerPost = page.posts.at(-1) ?? newerPost;
+    cursor = page.cursor;
+  }
+
+  throw new BlogCmsUnavailable('Post navigation exceeded its supported page count');
+}
+
 async function allBlogPosts(context: C): Promise<BlogPost[]> {
   const posts: BlogPost[] = [];
   let cursor: string | undefined;
@@ -200,7 +226,16 @@ export async function loadBlogPage(context: C, path: string, previewToken?: stri
     const slug = detailSlug(path);
     if (!slug) return { path, status: 404, preview: Boolean(previewToken), posts: [], post: null };
     const post = await blogPostBySlug(context, slug, previewToken);
-    return { path, status: 200, preview: Boolean(previewToken), posts: [], post: await withPostTopics(context, post) };
+    let posts: BlogPost[] = [];
+    if (!previewToken) {
+      try {
+        posts = await neighboringBlogPosts(context, post.slug);
+      } catch (error) {
+        // Navigation is optional; a CMS list failure must not hide the article.
+        console.error('Blog post navigation is unavailable', { path, reason: error instanceof Error ? error.name : 'unknown' });
+      }
+    }
+    return { path, status: 200, preview: Boolean(previewToken), posts, post: await withPostTopics(context, post) };
   } catch (error) {
     if (error instanceof BlogPostNotFound) return { path, status: 404, preview: Boolean(previewToken), posts: [], post: null };
     console.error('Blog content is unavailable', { path, reason: error instanceof Error ? error.name : 'unknown' });
