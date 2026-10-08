@@ -24,6 +24,6 @@
     "src/use-state.ts",
     "src/vite-env.d.ts",
     "src/views/**/*.vue",
-    "worker-configuration.d.ts"
+    "runtime/.cloudflare/types/index.d.ts"
   ]
 }

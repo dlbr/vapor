@@ -6,18 +6,18 @@
   "scripts": {
     "dev": "concurrently -k -n worker,server,client \"pnpm run dev:worker\" \"pnpm run dev:server\" \"pnpm run dev:client\"",
     "dev:worker": "vite build --config vite.worker.config.ts --mode development --watch",
-    "dev:server": "mkdir -p dist/client && wait-on --timeout 30000 dist/worker/index.mjs && wrangler dev --port 3000 --ip 127.0.0.1",
+    "dev:server": "mkdir -p dist/client && wait-on --timeout 30000 dist/worker/index.mjs && pnpm --dir runtime exec cf dev --port 3000",
     "dev:client": "wait-on --timeout 30000 tcp:127.0.0.1:3000 && vite --host 127.0.0.1 --port 5173",
-    "build": "pnpm run types && pnpm run build:worker && pnpm run build:client",
-    "types": "wrangler types",
+    "build": "pnpm run types && pnpm run build:worker && pnpm run build:client && pnpm --dir runtime exec cf build",
+    "types": "pnpm --dir runtime exec cf workers types",
     "build:worker": "vite build --config vite.worker.config.ts",
     "build:client": "vite build",
     "test": "vitest run",
     "validate": "pnpm run build && pnpm test",
     "predeploy": "pnpm run validate",
     "hooks:install": "git config core.hooksPath .githooks && chmod +x .githooks/pre-push",
-    "preview": "wrangler dev",
-    "deploy": "pnpm run build && wrangler deploy"
+    "preview": "pnpm run build && pnpm --dir runtime exec cf dev --port 3000",
+    "deploy": "pnpm run build && pnpm --dir runtime exec cf deploy --prebuilt"
   },
   "dependencies": {
     "@vitejs/plugin-vue": "latest",
@@ -31,7 +31,6 @@
     "vite": "latest",
     "vitest": "^4.1.10",
     "vue-tsc": "latest",
-    "wait-on": "latest",
-    "wrangler": "latest"
+    "wait-on": "latest"
   }
 }

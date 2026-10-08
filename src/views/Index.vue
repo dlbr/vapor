@@ -1,4 +1,5 @@
 <script setup vapor lang="ts">
+const brandLogo = '/dlbr-logo.svg';
 const steps = [
   { number: '01', title: 'Customer', description: 'Your customer confirms a request in an EUDI Wallet.' },
   { number: '02', title: 'Verification', description: 'The gateway checks the credential, issuer and request.' },
@@ -18,10 +19,10 @@ const useCases = [
 
 <template>
   <main class="page">
-    <header class="site-header"><a class="brand" href="/" aria-label="DLBR EID home"><img src="/dlbr-logo.svg" width="42" height="26" alt="" aria-hidden="true"></a><a class="header-link" href="https://console.dlbr.app/">Log in ↗</a></header>
+    <header class="site-header"><a class="brand" href="/" aria-label="DLBR EID home"><img :src="brandLogo" width="42" height="26" alt="" aria-hidden="true"></a><a class="header-link" href="https://console.dlbr.app/">Log in ↗</a></header>
     <div class="hero">
       <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span> Pilot underway</p>
-      <h1>EUDI Wallet verification for relying parties.</h1>
+      <h1>EUDI WALLET VERIFICATION FOR RELYING PARTIES.</h1>
       <p class="hero-lead">Bring wallet verification into the customer journey you already own.</p>
       <p class="hero-detail">DLBR EID connects OpenID4VP presentations to your onboarding flow through one API and a typed TypeScript SDK. Support for mDOC and SD-JWT VC is planned.</p>
       <div class="hero-actions"><a href="https://console.dlbr.app/signup" class="pill">Request pilot access <span aria-hidden="true">↗</span></a><a href="https://docs.dlbr.app/" class="text-link">Read the docs ↗</a></div>

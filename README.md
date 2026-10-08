@@ -27,19 +27,22 @@ The shared `pre-push` hook runs `pnpm run validate` before pushing. Deployments
 through `pnpm run deploy` run the same validation via the `predeploy` lifecycle
 hook.
 
-`pnpm run dev` runs three processes: a watching Worker build, `wrangler dev` on
+`pnpm run dev` runs three processes: a watching Worker build, `cf dev` on
 `http://127.0.0.1:3000`, and Vite on `http://127.0.0.1:5173` for client assets
-and HMR. They start in that order — wrangler waits for the Worker artifact to
+and HMR. They start in that order — `cf dev` waits for the Worker artifact to
 exist, Vite waits for port `3000` — so a backend failure surfaces directly
 instead of hiding behind proxy spam.
 
-`wrangler dev` runs the real workerd runtime, so bindings behave as they do in
+`cf dev` runs the real workerd runtime through the project's Cloudflare config,
+so bindings behave as they do in
 production. It also watches `main` itself: rebuild the Worker and it reloads,
 with no watch configuration to keep in sync.
 
-Cloudflare Worker bindings are typed by Wrangler. After editing `wrangler.jsonc`, run `pnpm run types`; it regenerates `worker-configuration.d.ts` from the real Worker configuration.
+Cloudflare Worker bindings come from `runtime/cloudflare.config.ts`. The small
+`runtime` workspace keeps CLI discovery away from this app's custom split Vite
+setup. Run `pnpm run types` to regenerate the Worker declarations with `cf`.
 
-The browser app and Worker runtime use separate TypeScript programs. `tsconfig.json` keeps DOM/Vite globals for the client, while `tsconfig.worker.json` consumes the Wrangler-generated Worker globals without colliding with browser DOM declarations.
+The browser app and Worker runtime use separate TypeScript programs. `tsconfig.json` keeps DOM/Vite globals for the client, while `tsconfig.worker.json` consumes the `cf`-generated Worker globals without colliding with browser DOM declarations.
 
 Vue Vapor runtime is pinned through `@vue/runtime-vapor` and matching `vue@3.6.0-rc.2`. Keep those versions aligned when upgrading Vapor.
 
