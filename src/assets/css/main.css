@@ -8,13 +8,15 @@
 
 :root {
   color-scheme: dark;
-  --canvas: #111111;
-  --surface: #1d1d1d;
-  --surface-hover: #292929;
-  --text: #ededed;
-  --muted: #a0a0a0;
-  --faint: #737373;
-  --line: #343434;
+  --canvas: #0046ff;
+  --page-max-width: 520px;
+  --page-heading-offset: clamp(96px, 15vh, 136px);
+  --surface: #003bd9;
+  --surface-hover: #0032bf;
+  --text: #ffffff;
+  --muted: #e1e8ff;
+  --faint: #d3ddff;
+  --line: #5680ff;
   font-family: 'Paper Mono', ui-monospace, monospace;
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
@@ -28,4 +30,4 @@ a { color: inherit; text-decoration: none; }
 a:hover { color: white; }
 a:focus-visible { outline: 2px solid var(--text); outline-offset: 4px; }
 button { font: inherit; }
-::selection { background: #626262; color: white; }
+::selection { background: #ffffff; color: #0046ff; }

@@ -1,8 +1,8 @@
-# Terms of Service
+# TERMS OF SERVICE
 
-**Last updated:** 1 October 2026
+**Last updated:** 8 October 2026
 
-These Terms govern business access to DLBR EID. By using the service for a business, you agree to use it lawfully, protect your account credentials, and follow these Terms.
+These Terms govern business access to DLBR EID. By using DLBR EID for your business, you agree to use it lawfully, protect your account credentials, and follow these Terms.
 
 ## Provider
 

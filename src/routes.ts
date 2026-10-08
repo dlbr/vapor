@@ -9,6 +9,8 @@ export const routes: RouteConfig[] = [
   { path: '/blog', component: BlogView },
   { path: '/blog/:slug', component: BlogView },
   { path: '/use-cases', component: UseCases },
+  { path: '/declared-set', component: LegalPage },
+  { path: '/impressum', component: LegalPage },
   { path: '/privacy', component: LegalPage },
   { path: '/terms', component: LegalPage },
   { path: '*', redirect: '/' },

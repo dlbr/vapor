@@ -52,8 +52,15 @@ const HSTS = 'max-age=63072000; includeSubDomains; preload';
  * would stop resolving for two years. Gate on the actual scheme.
  */
 function securityHeaders(url: URL) {
-  if (url.protocol !== 'https:') return BASE_SECURITY_HEADERS;
-  return { ...BASE_SECURITY_HEADERS, 'strict-transport-security': HSTS };
+  const headers: Record<string, string> = url.protocol === 'https:'
+    ? { ...BASE_SECURITY_HEADERS, 'strict-transport-security': HSTS }
+    : { ...BASE_SECURITY_HEADERS };
+
+  // This custom hostname serves the review build. Worker Preview URLs on
+  // workers.dev get noindex automatically; custom domains need the header here.
+  if (url.hostname === 'preview.dlbr.app') headers['x-robots-tag'] = 'noindex';
+
+  return headers;
 }
 
 const ENCODER = new TextEncoder();

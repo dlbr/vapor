@@ -63,19 +63,19 @@ const useCases = [
       <h2>explore a use case</h2>
       <p>Tell us about your customer journey and the verification step you want to add.</p>
       <div class="footer-actions"><a href="https://console.dlbr.app/signup" class="pill">Request pilot access <span aria-hidden="true">↗</span></a><a href="https://dlbr.app/contact/sales" class="text-link">Contact sales ↗</a></div>
-      <nav class="legal-links" aria-label="Legal information"><a href="/privacy">Privacy</a><a href="/terms">Terms</a></nav>
+      <nav class="legal-links" aria-label="Legal information"><a href="/privacy">Privacy</a><a href="/impressum">Impressum</a><a href="/terms">Terms</a></nav>
       <div class="meta"><span>© 2026 DLBR</span><a href="mailto:contact@dlbr.app">contact@dlbr.app ↗</a></div>
     </footer>
   </main>
 </template>
 
 <style>
-.use-cases-page { width: min(100% - 32px, 520px); margin: auto; padding: 40px 0 32px; }
+.use-cases-page { width: min(100% - 32px, var(--page-max-width)); margin: auto; padding: 40px 0 32px; }
 .use-cases-page .site-header { display: flex; align-items: center; justify-content: space-between; }
 .use-cases-page .brand { display: inline-flex; align-items: center; min-width: 44px; min-height: 44px; }
 .use-cases-page .brand img { width: 42px; height: 26px; object-fit: contain; filter: invert(1); }
 .use-cases-page .header-link { color: var(--muted); font-size: 12px; }
-.use-cases-page .hero { margin-top: min(18vh, 150px); }
+.use-cases-page .hero { margin-top: calc(var(--page-heading-offset) - 40px); }
 .use-cases-page .eyebrow, .use-cases-page h2 { margin: 0 0 24px; color: var(--faint); font-size: 12px; font-weight: 500; line-height: 16px; text-transform: uppercase; letter-spacing: .04em; }
 .use-cases-page h1 { max-width: 500px; margin: 0 0 24px; font-size: clamp(33px, 7vw, 52px); font-weight: 500; letter-spacing: -.08em; line-height: 1.08; }
 .use-cases-page .hero-lead { margin: 0 0 16px; color: var(--text); font-size: 17px; line-height: 1.5; }
@@ -87,7 +87,7 @@ const useCases = [
 .use-cases-page .text-link { color: var(--text); font-size: 12px; text-decoration: underline; text-decoration-color: var(--faint); text-underline-offset: 4px; }
 .use-cases-page section, .use-cases-page .site-footer { margin-top: 100px; }
 .use-cases-page .section-intro { margin: -8px 0 28px; font-size: 15px; }
-.use-cases-page .use-case-list { display: flex; gap: 12px; width: calc(100vw - max(16px, (100vw - 520px) / 2)); margin-right: calc(-1 * max(16px, (100vw - 520px) / 2)); overflow-x: auto; overscroll-behavior-inline: contain; scroll-snap-type: x mandatory; scroll-padding-inline: 2px; padding: 2px 16px 14px 2px; scrollbar-width: thin; }
+.use-cases-page .use-case-list { display: flex; gap: 12px; width: calc(100vw - max(16px, (100vw - var(--page-max-width)) / 2)); margin-right: calc(-1 * max(16px, (100vw - var(--page-max-width)) / 2)); overflow-x: auto; overscroll-behavior-inline: contain; scroll-snap-type: x mandatory; scroll-padding-inline: 2px; padding: 2px 16px 14px 2px; scrollbar-width: thin; }
 .use-cases-page .use-case-row { display: flex; flex: 0 0 min(82%, 680px); flex-direction: column; min-height: 330px; scroll-snap-align: start; scroll-snap-stop: always; padding: 28px; border: 1px solid #fff; border-radius: 10px; background: #fff; color: #111; }
 .use-cases-page .use-case-number { color: #737373; font-size: 11px; }
 .use-cases-page .use-case-content { display: flex; flex: 1; flex-direction: column; align-items: flex-start; padding-top: 42px; }
@@ -105,5 +105,5 @@ const useCases = [
 .use-cases-page .legal-links a { text-decoration: underline; text-decoration-color: var(--faint); text-underline-offset: 3px; }
 .use-cases-page .site-footer > p { max-width: 380px; margin: 0; font-size: 20px; line-height: 1.4; }
 .use-cases-page .meta { display: flex; justify-content: space-between; gap: 16px; margin-top: 90px; color: var(--faint); font-size: 11px; }
-@media (max-width: 480px) { .use-cases-page { padding-top: 24px; } .use-cases-page .hero { margin-top: min(15vh, 110px); } .use-cases-page section, .use-cases-page .site-footer { margin-top: 76px; } .use-cases-page h1 { font-size: 38px; } .use-cases-page .use-case-row { flex-basis: 84%; min-height: 290px; padding: 22px; } .use-cases-page .use-case-content { padding-top: 28px; } }
+@media (max-width: 480px) { .use-cases-page { padding-top: 24px; } .use-cases-page section, .use-cases-page .site-footer { margin-top: 76px; } .use-cases-page h1 { font-size: 38px; } .use-cases-page .use-case-row { flex-basis: 84%; min-height: 290px; padding: 22px; } .use-cases-page .use-case-content { padding-top: 28px; } }
 </style>

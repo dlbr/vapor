@@ -143,6 +143,40 @@ export function getRouteHead(path: string, blogData: BlogPageData | null = null)
     };
   }
 
+  if (path === '/declared-set') {
+    const title = 'A request outside the declared use never gets a QR code';
+    const description = 'A gateway control rejects attributes outside a relying party’s declared use before a session or QR code exists.';
+    return {
+      title: `${title} | DLBR EID`,
+      meta: [
+        { name: 'description', content: description },
+        { property: 'og:title', content: `${title} | DLBR EID` },
+        { property: 'og:description', content: description },
+        { property: 'og:type', content: 'article' },
+        { property: 'og:url', content: 'https://dlbr.app/declared-set' },
+      ],
+      link: [{ rel: 'canonical', href: 'https://dlbr.app/declared-set' }],
+      htmlAttrs: { lang: 'en' },
+    };
+  }
+
+  if (path === '/impressum') {
+    const title = 'Impressum';
+    const description = 'Provider identification and contact information for DALIBOR GOGIC PR DLBR.';
+    return {
+      title: `${title} | DLBR EID`,
+      meta: [
+        { name: 'description', content: description },
+        { property: 'og:title', content: `${title} | DLBR EID` },
+        { property: 'og:description', content: description },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: 'https://dlbr.app/impressum' },
+      ],
+      link: [{ rel: 'canonical', href: 'https://dlbr.app/impressum' }],
+      htmlAttrs: { lang: 'en' },
+    };
+  }
+
   if (path === '/admin') {
     return {
       title: 'Admin Dashboard | DLBR ID',
