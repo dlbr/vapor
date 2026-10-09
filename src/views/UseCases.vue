@@ -63,7 +63,7 @@ const useCases = [
       <h2>explore a use case</h2>
       <p>Tell us about your customer journey and the verification step you want to add.</p>
       <div class="footer-actions"><a href="https://console.dlbr.app/signup" class="pill">Request pilot access <span aria-hidden="true">↗</span></a><a href="https://dlbr.app/contact/sales" class="text-link">Contact sales ↗</a></div>
-      <nav class="legal-links" aria-label="Legal information"><a href="/privacy">Privacy</a><a href="/impressum">Impressum</a><a href="/terms">Terms</a></nav>
+      <nav class="legal-links" aria-label="Legal information"><a href="/declared">Declared use</a><a href="/privacy">Privacy</a><a href="/impressum">Impressum</a><a href="/terms">Terms</a></nav>
       <div class="meta"><span>© 2026 DLBR</span><a href="mailto:contact@dlbr.app">contact@dlbr.app ↗</a></div>
     </footer>
   </main>

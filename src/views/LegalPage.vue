@@ -227,6 +227,6 @@ const changes = computed(() => previousRevision.value ? lineDiff(previousRevisio
       </section>
       <nav class="legal-switch" :aria-label="isDeclaredSet || isImpressum ? 'Page navigation' : 'Legal pages'"><a v-if="isDeclaredSet || isImpressum" href="/">Home</a><template v-else><a href="/privacy" :aria-current="isPrivacy ? 'page' : undefined">Privacy</a><a href="/terms" :aria-current="!isPrivacy ? 'page' : undefined">Terms</a></template></nav>
     </article>
-    <footer class="legal-footer"><a href="/">DLBR EID</a><span>© 2026 DLBR</span></footer>
+    <footer class="legal-footer"><a href="/">DLBR EID</a><a href="/declared">Declared use</a><span>© 2026 DLBR</span></footer>
   </main>
 </template>
