@@ -13,15 +13,6 @@ This check runs before a session link exists. It does not depend on the wallet, 
 
 A predicate is not a way around the use. If `birth_date` is not part of that use, asking for it is refused.
 
-## The response
-
-```json
-{
-  "error": "ERR_CLAIM_OUTSIDE_INTENDED_USE",
-  "message": "The requested claim is not declared for the selected intended use"
-}
-```
-
 No session is billed. No claim is stored, because none was disclosed.
 
 ## Audit
