@@ -12,7 +12,7 @@ import '../styles/legal.css';
 
 const { currentPath } = useRouter();
 const brandLogo = '/dlbr-logo.svg';
-const isDeclaredSet = computed(() => currentPath.value === '/declared-set');
+const isDeclaredSet = computed(() => currentPath.value === '/declared');
 const isImpressum = computed(() => currentPath.value === '/impressum');
 const isPrivacy = computed(() => currentPath.value === '/privacy');
 const title = computed(() => isDeclaredSet.value

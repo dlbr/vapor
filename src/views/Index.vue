@@ -17,7 +17,7 @@ const refusalJson = JSON.stringify({
     </div>
     <section aria-labelledby="refusal-heading"><h2 id="refusal-heading">The refusal</h2>
       <div class="refusal-card"><div class="refusal-meta"><span>POST /v1/sessions</span><strong>HTTP 403</strong></div><pre><code>{{ refusalJson }}</code></pre></div>
-      <p class="section-copy"><code>is_over_18</code> on that use is accepted. Adding <code>birth_date</code> is refused before a session exists. The audit record returns the declared and requested attributes, never the claim. <a href="/declared-set">Read the declared-set check ↗</a></p>
+      <p class="section-copy"><code>is_over_18</code> on that use is accepted. Adding <code>birth_date</code> returns <code>403</code> and <code>ERR_CLAIM_OUTSIDE_INTENDED_USE</code> before a session exists. <a href="/declared">Read the declared-use check ↗</a></p>
     </section>
     <section aria-labelledby="flow-heading"><h2 id="flow-heading">How it works</h2>
       <ol class="step-list"><li class="step-row"><span class="step-number">01</span><p>The relying party declares the attributes for the use.</p></li><li class="step-row"><span class="step-number">02</span><p>The gateway refuses a claim outside that use. No QR code is issued.</p></li><li class="step-row"><span class="step-number">03</span><p>A request inside the use can continue to the wallet. The result returns to the existing flow.</p></li></ol>

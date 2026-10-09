@@ -26,7 +26,7 @@ No session is billed. No claim is stored, because none was disclosed.
 
 ## Audit
 
-The audit record for this refusal returns `declared` and `requested`. It does not return a claim. `credential_types` and `issuer_ids` are empty on this event.
+The refusal returns `403` with `ERR_CLAIM_OUTSIDE_INTENDED_USE`. No session was created.
 
 ## Where the session sits
 
