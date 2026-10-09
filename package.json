@@ -17,7 +17,8 @@
     "predeploy": "pnpm run validate",
     "hooks:install": "git config core.hooksPath .githooks && chmod +x .githooks/pre-push",
     "preview": "pnpm run build && pnpm --dir runtime exec cf dev --port 3000",
-    "deploy": "pnpm run build && pnpm --dir runtime exec cf deploy --prebuilt"
+    "deploy": "pnpm run build && pnpm --dir runtime exec cf deploy --prebuilt",
+    "deploy:preview": "pnpm run build && pnpm --dir runtime exec wrangler deploy --name id-marketing-preview --domain preview.dlbr.app --config ../wrangler.jsonc"
   },
   "dependencies": {
     "@vitejs/plugin-vue": "latest",
